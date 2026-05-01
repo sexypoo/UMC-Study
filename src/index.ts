@@ -3,6 +3,9 @@ import express, { Express, Request, Response } from "express";
 import cors from "cors";
 
 import { handleUserSignUp } from "./modules/users/controllers/user.controller.js";
+import { handleAddReview } from "./modules/reviews/controllers/review.controller.js";
+import { handleAddMission } from "./modules/missions/controllers/mission.controller.js";
+import { handleStartMission } from "./modules/missions/controllers/user-mission.controller.js";
 
 // 1. 환경 변수 설정
 dotenv.config();
@@ -21,7 +24,18 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello World! This is TypeScript Server!");
 });
 
+// 회원가입
 app.post("/api/v1/users/signup", handleUserSignUp);
+
+// 1-2 가게에 리뷰 추가
+app.post("/api/v1/restaurants/:restaurantId/reviews", handleAddReview);
+
+// 1-3 가게에 미션 추가
+app.post("/api/v1/restaurants/:restaurantId/missions", handleAddMission);
+
+// 1-4 미션 수락
+app.post("/api/v1/users/:userId/missions", handleStartMission);
+
 
 // 4. 서버 시작
 app.listen(port, () => {
