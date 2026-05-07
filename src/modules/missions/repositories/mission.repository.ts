@@ -1,45 +1,57 @@
-import { ResultSetHeader, RowDataPacket } from "mysql2";
-import { pool } from "../../../db.config.js";
+import { prisma } from "../../../db.config.js"
 
-export const addMission = async (data: any): Promise<number | null> => {
-  const conn = await pool.getConnection();
-
-    try{
-    const [result] = await pool.query<ResultSetHeader>(
-      `INSERT INTO mission (restaurant_id, point, meal_price, due_date) VALUES (?, ?, ?, ?);`,
-      [
-        data.restaurantId,
-        data.point,
-        data.mealPrice,
-        data.dueDate
-      ]
-    );
-
-    return result.insertId;
-  } catch (err) {
-    throw new Error(`오류가 발생했어요: ${err}`);
-  } finally {
-    conn.release();
-  }
-};
-
-export const getMission = async (missionId: number): Promise<any | null> => {
-  const conn = await pool.getConnection();
-
+export const addMission = async (data: any) => {
   try {
-    const [mission] = await pool.query<RowDataPacket[]>(
-      `SELECT * FROM mission WHERE id = ?;`,
-      [missionId]
-    );
+    const mission = await prisma.mission.create({
+      data: {
+        restaurantId: data.restaurantId,
+        point: data.point,
+        mealPrice: data.mealPrice,
+        dueDate: new Date(data.dueDate),
+      },
+    });
 
-    if (mission.length === 0) {
-      return null;
-    }
-
-    return mission[0];
+    return mission.id;
   } catch (err) {
     throw new Error(`오류가 발생했어요: ${err}`);
-  } finally {
-    conn.release();
   }
 };
+
+export const getMission = async (missionId: number) => {
+  try {
+    const mission = await prisma.mission.findUnique({
+      where: { id: missionId },
+    });
+
+    return mission; // 없으면 Prisma가 null 반환
+  } catch (err) {
+    throw new Error(`오류가 발생했어요: ${err}`);
+  }
+};
+
+
+export const getAllRestaurantMissions = async (restaurantId: number, cursor: number) => {
+  const missions = await prisma.mission.findMany({
+    select:{
+      id: true,
+      restaurantId: true,
+      point: true,
+      mealPrice: true,
+      dueDate: true,
+      restaurant: true
+
+    },
+    where:{
+      restaurantId,
+      id:{
+        gt: cursor,
+      }
+    },
+    orderBy:{
+      id: "asc"
+    },
+    take: 5,
+  });
+
+  return missions;
+}

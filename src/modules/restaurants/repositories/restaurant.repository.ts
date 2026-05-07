@@ -1,19 +1,35 @@
-import { ResultSetHeader, RowDataPacket } from "mysql2";
-import { pool } from "../../../db.config.js";
+import { prisma } from "../../../db.config.js"
 
-export const getRestaurantById = async (restaurantId: number): Promise<any | null> => {
-  const conn = await pool.getConnection();
-
-  try {
-    const [rows] = await pool.query<RowDataPacket[]>(
-      `SELECT * FROM restaurant WHERE id = ?;`,
-      [restaurantId]
-    );
-
-    return rows[0] || null;
-  } catch (err) {
-    throw new Error(`오류가 발생했어요: ${err}`);
-  } finally {
-    conn.release();
-  }
+export const getRestaurantById = async (restaurantId: number) => {
+  return await prisma.user.findFirstOrThrow({
+    where: {
+      id: restaurantId
+    }
+  });
 };
+
+export const getAllRestaurantReviews = async (restaurantId: number, cursor:number) =>{
+  const reviews = await prisma.review.findMany({
+    select:{
+      id: true,
+      content: true,
+      rating: true,
+      restaurantId: true,
+      userId: true,
+      restaurant: true,
+      user: true
+    },
+    where:{
+      restaurantId,
+      id:{
+        gt: cursor,
+      }
+    },
+    orderBy:{
+      id: "asc"
+    },
+    take: 5,
+  });
+
+  return reviews;
+}

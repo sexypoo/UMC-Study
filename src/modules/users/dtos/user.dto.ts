@@ -49,17 +49,19 @@ export interface CategoryInfo{
 
 export const responseFromUser = ({ user, preferences }: {
   user: UserEntity;
-  preferences: number[];
+  preferences: any[];
 }) =>{
-    return{
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        gender: user.gender,
-        birth: user.birth,
-        address: user.address,
-        detailAddress: user.detail_address,
-        phoneNumber: user.phone_number,
-        preferences: preferences
-    }
+
+  const preferCategory = preferences.map((p) => p.foodCategory.name)
+  return{
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      gender: user.gender,
+      birth: user.birth,
+      address: user.address,
+      detailAddress: user.detail_address,
+      phoneNumber: user.phone_number,
+      preferences: preferCategory
+  }
 }

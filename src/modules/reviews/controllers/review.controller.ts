@@ -8,7 +8,7 @@ export const handleAddReview = async(req: Request, res: Response, next: NextFunc
     console.log("body:", req.body);
 
     const restaurantId = Number(req.params.restaurantId);
-    const { userId, rating, content } = req.body; 
+    const { userId, rating, content } = req.body;
 
     // 서비스 로직 호출
     const review = await reviewAdd(bodyToReview({

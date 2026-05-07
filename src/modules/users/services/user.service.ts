@@ -7,6 +7,13 @@ import {
   setPreference,
 } from "../repositories/user.repository.js";
 
+import { ReviewListResponse, responseFromReviews } from "../../reviews/dtos/review.dto.js"
+import { getAllUserReviews } from "../../reviews/repositories/review.repository.js";
+
+import { getAllUserMissions } from "../../missions/repositories/user-mission.repository.js"
+
+import { UserMissionListResponse, responseFromUserMissions } from "../../missions/dtos/user-mission.dto.js";
+
 import bcrypt from "bcrypt"
 
 export const userSignUp = async (data: UserSignUpRequest) => {
@@ -37,3 +44,19 @@ export const userSignUp = async (data: UserSignUpRequest) => {
 
   return responseFromUser({ user, preferences });
 };
+
+export const listUserReviews = async(
+    userId: number,
+    cursor: number
+  ): Promise<ReviewListResponse> => {
+      const reviews = await getAllUserReviews(userId, cursor);
+      return responseFromReviews(reviews);
+}
+
+export const listUserMissions = async(
+    userId: number,
+    cursor: number
+  ): Promise<UserMissionListResponse> => {
+      const missions = await getAllUserMissions(userId, cursor);
+      return responseFromUserMissions(missions);
+}
