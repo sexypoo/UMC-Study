@@ -1,20 +1,10 @@
 import e from "express";
 
 export interface MissionAddRequest {
-    restaurantId:number,
     point:number,
     mealPrice:number,
     dueDate:string
 }
-
-export const bodyToMission = (body: MissionAddRequest) => {
-  return {
-    restaurantId: body.restaurantId,
-    point:body.point,
-    mealPrice: body.mealPrice,
-    dueDate: body.dueDate
-  }
-};
 
 export interface MissionAddResponse {
   id: number;
@@ -38,7 +28,6 @@ export const responseFromMission = (mission: MissionAddResponse) =>{
     }
 }
 
-
 export interface MissionItem {
   id: number;
   restaurantId: number;
@@ -61,11 +50,11 @@ export interface MissionListResponse {
 }
 
 export const responseFromMissions = (missions: MissionItem[]): MissionListResponse => {
-  const lastMission = missions[missions.length - 1];
-  return {
-    data: missions,
-    pagination: {
-      cursor: lastMission ? lastMission.id : null,
-    },
-  };
+    const lastMission = missions[missions.length - 1];
+    return {
+        data: missions,
+        pagination: {
+            cursor: lastMission ? lastMission.id : null,
+        },
+    };
 };

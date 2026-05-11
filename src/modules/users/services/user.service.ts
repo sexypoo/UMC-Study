@@ -1,4 +1,4 @@
-import { UserSignUpRequest } from "../dtos/user.dto.js"; //인터페이스 가져오기 
+import { UserSignUpRequest, UserSignUpResponse } from "../dtos/user.dto.js"; //인터페이스 가져오기 
 import { responseFromUser } from "../dtos/user.dto.js";
 import {
   addUser,
@@ -6,6 +6,8 @@ import {
   getUserPreferencesByUserId,
   setPreference,
 } from "../repositories/user.repository.js";
+
+import { DuplicateUserEmailError } from "../../../common/errors/errors.js";
 
 import { ReviewListResponse, responseFromReviews } from "../../reviews/dtos/review.dto.js"
 import { getAllUserReviews } from "../../reviews/repositories/review.repository.js";
@@ -32,7 +34,7 @@ export const userSignUp = async (data: UserSignUpRequest) => {
   });
 
   if (joinUserId === null) {
-    throw new Error("이미 존재하는 이메일입니다.");
+    throw new DuplicateUserEmailError("이미 존재하는 이메일입니다.", data);
   }
 
   for (const preference of data.preferences) {
@@ -40,9 +42,15 @@ export const userSignUp = async (data: UserSignUpRequest) => {
   }
 
   const user = await getUser(joinUserId);
-  const preferences = await getUserPreferencesByUserId(joinUserId);
+  const userId = user!.id;
+  const preferences = (await getUserPreferencesByUserId(joinUserId)).map(
+    (obj) => obj.foodCategory.name,
+  );
 
-  return responseFromUser({ user, preferences });
+  return <UserSignUpResponse>{
+    userId,
+    preferences
+  }
 };
 
 export const listUserReviews = async(

@@ -1,39 +1,44 @@
-import { Request, Response, NextFunction } from "express";
+import { 
+    Body,
+    Controller,
+    Get,
+    Middlewares,
+    Post,
+    Request,
+    Res,
+    Route,
+    Tags,
+    Path,
+    Query
+} from "tsoa";
+
+import { Request as ExpressRequest } from "express";
 import { StatusCodes } from "http-status-codes";
 import { listRestaurantReviews, listRestaurantMissions } from "../services/restaurant.service.js";
+import { ApiResponse, success } from "../../../common/responses/response.js";
+import { ReviewListResponse } from "../../reviews/dtos/review.dto.js";
+import { MissionListResponse } from "../../missions/dtos/mission.dto.js"
 
-export const handleListRestaurantReviews = async(
-    req: Request,
-    res: Response,
-    next: NextFunction
-): Promise<void> => {
-    try{
-        const resId = parseInt(req.params.restaurantId as string, 10);
+@Route("restaurants")
+@Tags("Restaurants")
+export class RestaurantController extends Controller{ 
 
-        const cursor = typeof req.query.cursor === "string"
-            ? parseInt(req.query.cursor, 10)
-            : 0;
+    @Get("{resId}/reviews")
+    public async handleListRestaurantReviews(
+        @Path() resId: number,
+        @Query() cursor: number=0
+    ): Promise<ApiResponse<ReviewListResponse>>{
         const reviews = await listRestaurantReviews(resId, cursor);
-        res.status(StatusCodes.OK).json(reviews);
-    } catch(err){
-        next(err);
+        return success(reviews);
     }
-};
 
-export const handleListRestaurantMissions = async(
-    req: Request,
-    res: Response,
-    next: NextFunction
-): Promise<void> => {
-    try{
-        const resId = parseInt(req.params.restaurantId as string, 10);
-
-        const cursor = typeof req.query.cursor === "string"
-            ? parseInt(req.query.cursor, 10)
-            : 0;
+    @Get("{resId}/missions")
+    public async handleListRestaurantMissions(
+        @Path() resId: number,
+        @Query() cursor: number=0
+    ): Promise<ApiResponse<MissionListResponse>>{
         const missions = await listRestaurantMissions(resId, cursor);
-        res.status(StatusCodes.OK).json(missions);
-    } catch(err){
-        next(err);
+        return success(missions);
     }
-};
+
+}

@@ -1,16 +1,6 @@
 export interface MissionStartRequest {
-    userId: number,
-    missionId: number,
-    status: string
+    missionId: number
 }
-
-export const bodyToUserMission = (body: MissionStartRequest) => {
-  return {
-    userId: body.userId,
-    missionId: body.missionId,
-    status: body.status
-  }
-};
 
 export interface MissionStartResponse {
   id: number;

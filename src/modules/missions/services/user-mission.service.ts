@@ -1,3 +1,4 @@
+import { AlreadyChallengingMissionError, MissionStartError } from "../../../common/errors/errors.js";
 import { MissionStartRequest } from "../dtos/user-mission.dto.js"; //인터페이스 가져오기 
 import { responseFromStartMission } from "../dtos/user-mission.dto.js";
 import {
@@ -7,7 +8,7 @@ import {
 
 import { getUserMissionByUserIdAndMissionId } from "../repositories/user-mission.repository.js";
 
-export const missionStart = async (data: MissionStartRequest) => {
+export const missionStart = async (data: MissionStartRequest & { userId: number }) => {
 
   const isAlreadyChallenging = await getUserMissionByUserIdAndMissionId(
     data.userId,
@@ -15,20 +16,20 @@ export const missionStart = async (data: MissionStartRequest) => {
   );
 
   if (isAlreadyChallenging) {
-    throw new Error("이미 도전 중인 미션이에요.");
+    throw new AlreadyChallengingMissionError("이미 도전 중인 미션이에요.");
   }
 
   const userMissionId = await addUserMission({
     userId: data.userId,
     missionId: data.missionId,
-    status: data.status
+    status: "진행중"
   });
 
   if (userMissionId == null){
-    throw new Error("mission 등록에 실패하였습니다.")
+    throw new MissionStartError("mission 시작에 실패하였습니다.")
   }
 
   const userMission = await getUserMission(userMissionId);
 
-  return responseFromStartMission(userMission);
+  return userMission;
 };

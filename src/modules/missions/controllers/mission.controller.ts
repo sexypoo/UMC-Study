@@ -1,23 +1,36 @@
-import { Request, Response, NextFunction } from "express";
-import { StatusCodes } from "http-status-codes";
+import { 
+    Body,
+    Controller,
+    Get,
+    Middlewares,
+    Post,
+    Request,
+    Res,
+    Route,
+    Tags,
+    Path,
+    Query
+} from "tsoa";
 
-import { MissionAddRequest, bodyToMission } from "../dtos/mission.dto.js";
+import { Request as ExpressRequest } from "express";
+
+import { MissionAddRequest, MissionAddResponse, bodyToMission } from "../dtos/mission.dto.js";
 import { missionAdd } from "../services/mission.service.js";
 
-export const handleAddMission = async(req: Request, res: Response, next: NextFunction) => {
-    console.log("미션 추가를 요청했습니다.");
-    console.log("body:", req.body);
+import { ApiResponse, success } from "../../../common/responses/response.js";
 
-    const restaurantId = Number(req.params.restaurantId);
-    const { point, mealPrice, dueDate } = req.body; 
+@Route("restaurants")
+@Tags("Mission")
+export class MissionController extends Controller{ 
 
-    // 서비스 로직 호출
-    const mission = await missionAdd(bodyToMission({
-        restaurantId,
-        point,
-        mealPrice,
-        dueDate
-    } as MissionAddRequest));
-    // 성공 응답 보내기
-    res.status(StatusCodes.OK).json({result:mission});
+    @Post("{restaurantId}/missions")
+    public async handleAddMission(
+        @Path() restaurantId: number,
+        @Body() body: MissionAddRequest
+    ): Promise<ApiResponse<MissionAddResponse>>{
+        console.log("미션 추가를 요청했습니다.");
+        console.log("body:", body);
+        const mission = await missionAdd({...body, restaurantId});
+        return success(mission);
+    }
 }

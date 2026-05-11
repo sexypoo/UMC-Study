@@ -1,7 +1,7 @@
 import { prisma } from "../../../db.config.js"
 
 export const getRestaurantById = async (restaurantId: number) => {
-  return await prisma.user.findFirstOrThrow({
+  return await prisma.restaurant.findFirst({
     where: {
       id: restaurantId
     }
