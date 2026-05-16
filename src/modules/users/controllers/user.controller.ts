@@ -5,7 +5,7 @@ import {
     Middlewares,
     Post,
     Request,
-    Res,
+    Response,
     Route,
     Tags,
     Path,
@@ -16,18 +16,33 @@ import {
 import { UserSignUpRequest, UserSignUpResponse } from "../dtos/user.dto.js";
 import { userSignUp, listUserReviews, listUserMissions } from "../services/user.service.js";
 
-import { ApiResponse, success } from "../../../common/responses/response.js";
+import { ApiResponse, success, FailResponse } from "../../../common/responses/response.js";
 import { authorizeUser } from "../../../common/middlewares/auth.middleware.js";
 
-
-import { Request as ExpressRequest } from "express"
+import { Request as ExpressRequest, Response as ExpressResponse } from "express"
 import { ReviewListResponse } from "../../reviews/dtos/review.dto.js";
 import { UserMissionListResponse } from "../../missions/dtos/user-mission.dto.js"
 
 @Route("users")
 @Tags("Users")
 export class UserController extends Controller{ 
+    /**
+     * 회원가입 API
+     * @summary 회원가입을 처리하는 엔드포인트입니다.
+     * @param body 
+     * @returns { UserSignUpResponse } 회원가입 결과
+     */
     @Post("signup")
+    @Response<ApiResponse<UserSignUpResponse>>(200, "회원가입 성공")
+    @Response<FailResponse<null>>(409, "중복된 이메일 에러", {
+        resultType: "FAIL",
+        error: {
+            errorCode: "U001",
+            reason: "이미 사용 중인 이메일입니다.",
+            data: null,
+        },
+        data: null,
+    })
     public async handleUserSignUp(
         @Body() body: UserSignUpRequest,
     ) : Promise<ApiResponse<UserSignUpResponse>> {
@@ -37,6 +52,10 @@ export class UserController extends Controller{
         return success(user);
     }
 
+    /**
+    * 게스트 페이지
+    * @summary 로그인 없이 접근 가능한 게스트 페이지입니다.
+    */
     @Get("guest")
     public async handleGuestPage(): Promise<String>{
         return `
@@ -48,11 +67,19 @@ export class UserController extends Controller{
         `;
     }
 
+    /**
+     * 로그인 페이지
+     * @summary 인증이 필요한 페이지 시 리디렉션되는 로그인 페이지입니다.
+     */
     @Get("login")
     public async handleLoginPage(): Promise<String>{
         return "<h1>로그인 페이지</h1><p> 로그인이 필요한 페이지에서 튕겨나오면 여기로 옵니다.";
     }
 
+    /**
+     * 마이페이지
+     * @summary 로그인한 유저만 접근 가능한 마이페이지입니다.
+     */
     @Get("mypage")
     @Middlewares(authorizeUser())
     public async handleMypage(@Request() req: ExpressRequest): Promise<String>{
@@ -75,7 +102,14 @@ export class UserController extends Controller{
         return '로그아웃 완료 (쿠키 삭제). <a href="/api/v1/users/guest">메인으로</a>'
     }
 
+    /**
+     * 유저 리뷰 목록 조회 API
+     * @summary 특정 유저가 작성한 리뷰 목록을 반환하는 엔드포인트입니다.
+     * @param userId 
+     * @param cusor
+     */
     @Get("{userId}/reviews")
+    @Response<ApiResponse<ReviewListResponse>>(200, "리뷰 목록 조회 성공")
     public async handleListUserReview(
         @Path() userId: number,
         @Query() cursor: number = 0
@@ -84,7 +118,15 @@ export class UserController extends Controller{
         return success(reviews);
     }
 
+
+    /**
+     * 유저 미션 목록 조회 API
+     * @summary 특정 유저가 수행중인 미션 목록을 반환하는 엔드포인트입니다.
+     * @param userId 
+     * @param cusor
+     */
     @Get("{userId}/missions")
+    @Response<ApiResponse<ReviewListResponse>>(200, "미션 목록 조회 성공")
     public async handleListUserMission(
         @Path() userId: number,
         @Query() cursor: number = 0

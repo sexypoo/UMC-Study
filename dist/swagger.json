@@ -55,6 +55,54 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"FailResponse_null_": {
+				"properties": {
+					"resultType": {
+						"type": "string",
+						"enum": [
+							"FAIL"
+						],
+						"nullable": false
+					},
+					"error": {
+						"properties": {
+							"data": {
+								"type": "number",
+								"enum": [
+									null
+								],
+								"nullable": true
+							},
+							"reason": {
+								"type": "string"
+							},
+							"errorCode": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"data",
+							"reason",
+							"errorCode"
+						],
+						"type": "object"
+					},
+					"data": {
+						"type": "number",
+						"enum": [
+							null
+						],
+						"nullable": true
+					}
+				},
+				"required": [
+					"resultType",
+					"error",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"UserSignUpRequest": {
 				"properties": {
 					"email": {
@@ -419,6 +467,34 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"ApiResponse_ReviewAddRequest_": {
+				"properties": {
+					"resultType": {
+						"type": "string",
+						"enum": [
+							"SUCCESS"
+						],
+						"nullable": false
+					},
+					"error": {
+						"type": "number",
+						"enum": [
+							null
+						],
+						"nullable": true
+					},
+					"data": {
+						"$ref": "#/components/schemas/ReviewAddRequest"
+					}
+				},
+				"required": [
+					"resultType",
+					"error",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"MissionItem": {
 				"properties": {
 					"id": {
@@ -587,6 +663,54 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"FailResponse": {
+				"properties": {
+					"resultType": {
+						"type": "string",
+						"enum": [
+							"FAIL"
+						],
+						"nullable": false
+					},
+					"error": {
+						"properties": {
+							"data": {
+								"type": "number",
+								"enum": [
+									null
+								],
+								"nullable": true
+							},
+							"reason": {
+								"type": "string"
+							},
+							"errorCode": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"data",
+							"reason",
+							"errorCode"
+						],
+						"type": "object"
+					},
+					"data": {
+						"type": "number",
+						"enum": [
+							null
+						],
+						"nullable": true
+					}
+				},
+				"required": [
+					"resultType",
+					"error",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"MissionStartRequest": {
 				"properties": {
 					"missionId": {
@@ -703,7 +827,7 @@
 				"operationId": "HandleUserSignUp",
 				"responses": {
 					"200": {
-						"description": "Ok",
+						"description": "회원가입 결과",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -711,8 +835,33 @@
 								}
 							}
 						}
+					},
+					"409": {
+						"description": "중복된 이메일 에러",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FailResponse_null_"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"resultType": "FAIL",
+											"error": {
+												"errorCode": "U001",
+												"reason": "이미 사용 중인 이메일입니다.",
+												"data": null
+											},
+											"data": null
+										}
+									}
+								}
+							}
+						}
 					}
 				},
+				"description": "회원가입 API",
+				"summary": "회원가입을 처리하는 엔드포인트입니다.",
 				"tags": [
 					"Users"
 				],
@@ -745,6 +894,8 @@
 						}
 					}
 				},
+				"description": "게스트 페이지",
+				"summary": "로그인 없이 접근 가능한 게스트 페이지입니다.",
 				"tags": [
 					"Users"
 				],
@@ -767,6 +918,8 @@
 						}
 					}
 				},
+				"description": "로그인 페이지",
+				"summary": "인증이 필요한 페이지 시 리디렉션되는 로그인 페이지입니다.",
 				"tags": [
 					"Users"
 				],
@@ -789,6 +942,8 @@
 						}
 					}
 				},
+				"description": "마이페이지",
+				"summary": "로그인한 유저만 접근 가능한 마이페이지입니다.",
 				"tags": [
 					"Users"
 				],
@@ -855,6 +1010,8 @@
 						}
 					}
 				},
+				"description": "유저 리뷰 목록 조회 API",
+				"summary": "특정 유저가 작성한 리뷰 목록을 반환하는 엔드포인트입니다.",
 				"tags": [
 					"Users"
 				],
@@ -897,6 +1054,8 @@
 						}
 					}
 				},
+				"description": "유저 미션 목록 조회 API",
+				"summary": "특정 유저가 수행중인 미션 목록을 반환하는 엔드포인트입니다.",
 				"tags": [
 					"Users"
 				],
@@ -927,7 +1086,7 @@
 				"operationId": "HandleStartMission",
 				"responses": {
 					"200": {
-						"description": "Ok",
+						"description": "미션 시작 결과",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -935,8 +1094,32 @@
 								}
 							}
 						}
+					},
+					"409": {
+						"description": "이미 진행 중이거나 완료한 미션 — AlreadyChallengingMissionError (M002)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FailResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"resultType": "FAIL",
+											"error": {
+												"errorCode": "M002",
+												"reason": "이미 해당 미션을 진행 중이거나 완료했습니다.",
+												"data": null
+											},
+											"data": null
+										}
+									}
+								}
+							}
+						}
 					}
 				},
+				"summary": "미션 시작을 요청하는 엔드포인트입니다.",
 				"tags": [
 					"UserMission"
 				],
@@ -969,7 +1152,7 @@
 				"operationId": "HandleAddReview",
 				"responses": {
 					"200": {
-						"description": "Ok",
+						"description": "리뷰 등록 결과",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -979,6 +1162,7 @@
 						}
 					}
 				},
+				"summary": "리뷰 등록을 처리하는 엔드포인트입니다.",
 				"tags": [
 					"Review"
 				],
@@ -1019,8 +1203,32 @@
 								}
 							}
 						}
+					},
+					"404": {
+						"description": "존재하지 않는 식당 — RestaurantNotFoundError (R001)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FailResponse_null_"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"resultType": "FAIL",
+											"error": {
+												"errorCode": "R001",
+												"reason": "해당 식당을 찾을 수 없습니다.",
+												"data": null
+											},
+											"data": null
+										}
+									}
+								}
+							}
+						}
 					}
 				},
+				"summary": "식당별 리뷰를 조회하는 엔드포인트입니다.",
 				"tags": [
 					"Restaurants"
 				],
@@ -1063,6 +1271,7 @@
 						}
 					}
 				},
+				"summary": "식당별 미션을 조회할 수 있는 엔드포인트입니다.",
 				"tags": [
 					"Restaurants"
 				],
@@ -1095,7 +1304,7 @@
 				"operationId": "HandleAddMission",
 				"responses": {
 					"200": {
-						"description": "Ok",
+						"description": "미션 추가 결과",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -1103,8 +1312,19 @@
 								}
 							}
 						}
+					},
+					"404": {
+						"description": "존재하지 않는 유저 또는 미션 — NotFoundError",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FailResponse"
+								}
+							}
+						}
 					}
 				},
+				"summary": "식당에 미션을 추가할 수 있는 엔드포인트입니다.",
 				"tags": [
 					"Mission"
 				],
@@ -1135,7 +1355,7 @@
 	},
 	"servers": [
 		{
-			"url": "/"
+			"url": "/api/v1"
 		}
 	]
 }

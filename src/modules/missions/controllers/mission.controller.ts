@@ -5,7 +5,7 @@ import {
     Middlewares,
     Post,
     Request,
-    Res,
+    Response,
     Route,
     Tags,
     Path,
@@ -14,16 +14,24 @@ import {
 
 import { Request as ExpressRequest } from "express";
 
-import { MissionAddRequest, MissionAddResponse, bodyToMission } from "../dtos/mission.dto.js";
+import { MissionAddRequest, MissionAddResponse } from "../dtos/mission.dto.js";
 import { missionAdd } from "../services/mission.service.js";
 
-import { ApiResponse, success } from "../../../common/responses/response.js";
+import { ApiResponse, success, FailResponse } from "../../../common/responses/response.js";
 
 @Route("restaurants")
 @Tags("Mission")
 export class MissionController extends Controller{ 
 
+    /**
+     * @summary 식당에 미션을 추가할 수 있는 엔드포인트입니다.
+     * @param restaurantId 
+     * @param body 
+     * @returns { MissionAddResponse } 미션 추가 결과
+     */
     @Post("{restaurantId}/missions")
+    @Response<ApiResponse<MissionAddResponse>>(200, "미션 추가 성공")
+    @Response<FailResponse>(404, "존재하지 않는 유저 또는 미션 — NotFoundError")
     public async handleAddMission(
         @Path() restaurantId: number,
         @Body() body: MissionAddRequest

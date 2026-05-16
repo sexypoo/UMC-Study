@@ -6,8 +6,11 @@ import morgan from 'morgan';
 import cookieParser from "cookie-parser";
 import { AppError } from "./common/errors/app.error.js"
 
-// import { handleListUserReview, handleListUserMission } from "./modules/users/controllers/user.controller.js";
 import { RegisterRoutes } from "./generated/routes.js";
+
+import swaggerUi from "swagger-ui-express";
+import path from "path";
+import fs from "fs";
 
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
@@ -48,7 +51,7 @@ const router = express.Router();
 RegisterRoutes(router);
 app.use("/api/v1",router);
 
-app.use((err: AppError, req:Request, res:Request, next:NextFunction)=>{
+app.use((err: AppError, req:Request, res:Response, next:NextFunction)=>{
   if(res.headersSent){
     return next(err);
   }
@@ -66,3 +69,13 @@ app.use((err: AppError, req:Request, res:Request, next:NextFunction)=>{
 app.listen(port, () => {
   console.log(`[server]: Server is running at <http://localhost>:${port}`);
 });
+
+// ========== Swagger 설정 ==========
+
+// 1. TSOA가 설정한 swagger.json 읽어오기
+const swaggerFile = JSON.parse(
+  fs.readFileSync(path.resolve("dist/swagger.json"),"utf8")
+);
+
+// 2. Swagger UI 연결
+app.use("/docs",swaggerUi.serve, swaggerUi.setup(swaggerFile));
