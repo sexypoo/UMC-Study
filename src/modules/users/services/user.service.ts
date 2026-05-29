@@ -5,6 +5,7 @@ import {
   getUser,
   getUserPreferencesByUserId,
   setPreference,
+  updateUser
 } from "../repositories/user.repository.js";
 
 import { DuplicateUserEmailError } from "../../../common/errors/errors.js";
@@ -68,3 +69,18 @@ export const listUserMissions = async(
       const missions = await getAllUserMissions(userId, cursor);
       return responseFromUserMissions(missions);
 }
+
+export const updateUserService = async (userId: number, data: Partial<{
+  phoneNumber: string;
+  birth: string;
+  address: string;
+  detailAddress: string;
+  gender: string;
+}>) => {
+  const updated = await updateUser(userId, {
+    ...data,
+    birth: data.birth ? new Date(data.birth) : undefined,
+  });
+
+  return {userId: updated.id};
+};

@@ -381,6 +381,68 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"UpdateUserResponse": {
+				"properties": {
+					"userId": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"userId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_UpdateUserResponse_": {
+				"properties": {
+					"resultType": {
+						"type": "string",
+						"enum": [
+							"SUCCESS"
+						],
+						"nullable": false
+					},
+					"error": {
+						"type": "number",
+						"enum": [
+							null
+						],
+						"nullable": true
+					},
+					"data": {
+						"$ref": "#/components/schemas/UpdateUserResponse"
+					}
+				},
+				"required": [
+					"resultType",
+					"error",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateUserRequest": {
+				"properties": {
+					"phoneNumber": {
+						"type": "string"
+					},
+					"birth": {
+						"type": "string"
+					},
+					"address": {
+						"type": "string"
+					},
+					"detailAddress": {
+						"type": "string"
+					},
+					"gender": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
 			"ReviewAddResponse": {
 				"properties": {
 					"id": {
@@ -1141,6 +1203,40 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/MissionStartRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/users/me": {
+			"patch": {
+				"operationId": "HandleUpdateUser",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_UpdateUserResponse_"
+								}
+							}
+						}
+					}
+				},
+				"description": "유저 정보 수정 API",
+				"summary": "로그인한 유저 본인의 정보를 수정하는 엔드포인트입니다.",
+				"tags": [
+					"Users"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateUserRequest"
 							}
 						}
 					}

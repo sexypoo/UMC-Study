@@ -18,6 +18,7 @@ import { MissionStartRequest, MissionStartResponse } from "../dtos/user-mission.
 import { missionStart } from "../services/user-mission.service.js";
 
 import { ApiResponse, success, FailResponse } from "../../../common/responses/response.js";
+import { isLogin } from "../../../common/middlewares/auth.middleware.js";
 
 @Route("users")
 @Tags("UserMission")
@@ -25,11 +26,11 @@ export class UserMissionController extends Controller{
 
     /**
      * @summary 미션 시작을 요청하는 엔드포인트입니다.
-     * @param userId 
      * @param body 
      * @returns { MissionStartResponse } 미션 시작 결과
      */
-    @Post("{userId}/missions")
+    @Post("me/missions")
+    @Middlewares(isLogin)
     @Response<ApiResponse<MissionStartResponse>>(200, "미션 시작 성공")
     @Response<FailResponse>(409, "이미 진행 중이거나 완료한 미션 — AlreadyChallengingMissionError (M002)", {
         resultType: "FAIL",
@@ -42,11 +43,12 @@ export class UserMissionController extends Controller{
     })
     
     public async handleStartMission(
-        @Path() userId: number,
+        @Request() req: ExpressRequest,
         @Body() body: MissionStartRequest
     ): Promise<ApiResponse<MissionStartResponse>>{
         console.log("미션 시작을 요청했습니다.");
         console.log("body:", body);
+        const userId = (req.user as any).id;
         const mission = await missionStart({...body, userId});
         return success(mission);
     }

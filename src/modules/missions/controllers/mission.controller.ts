@@ -18,6 +18,7 @@ import { MissionAddRequest, MissionAddResponse } from "../dtos/mission.dto.js";
 import { missionAdd } from "../services/mission.service.js";
 
 import { ApiResponse, success, FailResponse } from "../../../common/responses/response.js";
+import { isLogin } from "../../../common/middlewares/auth.middleware.js";
 
 @Route("restaurants")
 @Tags("Mission")
@@ -30,6 +31,7 @@ export class MissionController extends Controller{
      * @returns { MissionAddResponse } 미션 추가 결과
      */
     @Post("{restaurantId}/missions")
+    @Middlewares(isLogin)
     @Response<ApiResponse<MissionAddResponse>>(200, "미션 추가 성공")
     @Response<FailResponse>(404, "존재하지 않는 유저 또는 미션 — NotFoundError")
     public async handleAddMission(

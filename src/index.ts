@@ -12,12 +12,20 @@ import swaggerUi from "swagger-ui-express";
 import path from "path";
 import fs from "fs";
 
+import passport from "passport";
+import { googleStrategy, jwtStrategy } from "./auth.config.js";
+
+import { isLogin } from "./common/middlewares/auth.middleware.js"; // 추가
+
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
 };
 
 // 1. 환경 변수 설정
 dotenv.config();
+
+passport.use(googleStrategy);
+passport.use(jwtStrategy);
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
@@ -40,10 +48,25 @@ app.use(express.json());              // request의 본문을 json으로 해석�
 app.use(express.urlencoded({ extended: false })); // 단순 객체 문자열 형태로 본문 데이터 해석
 app.use(morgan('dev'));
 app.use(cookieParser());
+app.use(passport.initialize());
 
 // 3. 기본 라우트
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World! This is TypeScript Server!");
+});
+
+// OAuth 라우트
+app.get("/oauth2/login/google", passport.authenticate("google", { session: false }));
+app.get("/oauth2/callback/google", passport.authenticate("google", { session: false, failureRedirect: "/login-failed"}),
+(req, res)=>{
+  res.status(200).json({success:true, tokens: req.user});
+});
+
+app.get('/mypage', isLogin, (req, res) => {
+  res.status(200).json({
+    message:`인증 성공! ${req.user.name}님의 마이페이지입니다.`,
+    user: req.user,
+  });
 });
 
 // Express.js에 생성한 엔드 포인트들을 register

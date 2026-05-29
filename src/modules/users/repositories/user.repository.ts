@@ -59,3 +59,18 @@ export const getUserPreferencesByUserId = async (userId: number) => {
     },
   });
 };
+
+// 사용자 정보 수정
+
+export const updateUser = async(userId: number, data:any) => {
+  return await prisma.user.update({
+    where:{id: userId},
+    data:{
+      phoneNumber: data.phoneNumber,
+      birth:data.birth,
+      address: data.address,
+      detailAddress: data.detailAddress,
+      gender:data.gender
+    }
+  });
+};

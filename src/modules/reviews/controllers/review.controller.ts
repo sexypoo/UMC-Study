@@ -16,6 +16,7 @@ import { Request as ExpressRequest, Response as ExpressResponse } from "express"
 import { ReviewAddRequest, ReviewAddResponse } from "../dtos/review.dto.js";
 import { reviewAdd } from "../services/review.service.js";
 import { ApiResponse, success } from "../../../common/responses/response.js";
+import { isLogin } from "../../../common/middlewares/auth.middleware.js";
 
 @Route("restaurants")
 @Tags("Review")
@@ -28,14 +29,17 @@ export class ReviewController extends Controller{
      * @returns { ReviewAddResponse } 리뷰 등록 결과
      */
     @Post("{restaurantId}/reviews")
+    @Middlewares(isLogin)
     @Response<ApiResponse<ReviewAddRequest>>(200, '리뷰 등록 성공')
     public async handleAddReview(
+        @Request() req: ExpressRequest,
         @Path() restaurantId: number,
         @Body() body: ReviewAddRequest
     ): Promise<ApiResponse<ReviewAddResponse>>{
         console.log("리뷰 등록을 요청했습니다.");
         console.log("body:", body);
-        const review = await reviewAdd({ ...body, restaurantId });
+        const userId = (req.user as any).id
+        const review = await reviewAdd({ ...body, restaurantId, userId });
         return success(review);
     }
 }

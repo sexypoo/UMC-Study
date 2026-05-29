@@ -33,3 +33,15 @@ export const responseFromUser = ({ user, preferences }: {
       preferences: preferCategory
   }
 }
+
+export interface UpdateUserRequest {
+  phoneNumber?: string;
+  birth?: string;
+  address?: string;
+  detailAddress?: string;
+  gender?: string;
+}
+
+export interface UpdateUserResponse{
+  userId: number
+}

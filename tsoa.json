@@ -2,6 +2,7 @@
   "entryFile": "src/index.ts",
   "noImplicitAdditionalProperties": "throw-on-extras",
   "controllerPathGlobs": ["src/**/controllers/*.controller.ts"],
+  "authenticationModule": "src/common/middlewares/auth.middleware.ts",
   "spec": {
     "outputDirectory": "dist",
     "specVersion": 3,

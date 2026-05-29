@@ -9,19 +9,22 @@ import {
     Route,
     Tags,
     Path,
-    Query
+    Query,
+    Security,
+    Patch,
 } from "tsoa";
 
 
-import { UserSignUpRequest, UserSignUpResponse } from "../dtos/user.dto.js";
-import { userSignUp, listUserReviews, listUserMissions } from "../services/user.service.js";
+import { UpdateUserRequest, UpdateUserResponse, UserSignUpRequest, UserSignUpResponse } from "../dtos/user.dto.js";
+import { userSignUp, listUserReviews, listUserMissions, updateUserService } from "../services/user.service.js";
 
 import { ApiResponse, success, FailResponse } from "../../../common/responses/response.js";
-import { authorizeUser } from "../../../common/middlewares/auth.middleware.js";
 
 import { Request as ExpressRequest, Response as ExpressResponse } from "express"
 import { ReviewListResponse } from "../../reviews/dtos/review.dto.js";
 import { UserMissionListResponse } from "../../missions/dtos/user-mission.dto.js"
+
+import { isLogin } from "../../../common/middlewares/auth.middleware.js";
 
 @Route("users")
 @Tags("Users")
@@ -81,7 +84,7 @@ export class UserController extends Controller{
      * @summary 로그인한 유저만 접근 가능한 마이페이지입니다.
      */
     @Get("mypage")
-    @Middlewares(authorizeUser())
+    @Middlewares(isLogin)
     public async handleMypage(@Request() req: ExpressRequest): Promise<String>{
         return `
             <h1>마이페이지</h1>
@@ -105,15 +108,16 @@ export class UserController extends Controller{
     /**
      * 유저 리뷰 목록 조회 API
      * @summary 특정 유저가 작성한 리뷰 목록을 반환하는 엔드포인트입니다.
-     * @param userId 
      * @param cusor
      */
-    @Get("{userId}/reviews")
+    @Get("me/reviews")
+    @Middlewares(isLogin)
     @Response<ApiResponse<ReviewListResponse>>(200, "리뷰 목록 조회 성공")
     public async handleListUserReview(
-        @Path() userId: number,
+        @Request() req: ExpressRequest,
         @Query() cursor: number = 0
     ): Promise<ApiResponse<ReviewListResponse>>{
+        const userId = (req.user as any).id;
         const reviews = await listUserReviews(userId, cursor);
         return success(reviews);
     }
@@ -122,16 +126,34 @@ export class UserController extends Controller{
     /**
      * 유저 미션 목록 조회 API
      * @summary 특정 유저가 수행중인 미션 목록을 반환하는 엔드포인트입니다.
-     * @param userId 
      * @param cusor
      */
-    @Get("{userId}/missions")
+    @Get("me/missions")
+    @Middlewares(isLogin)
     @Response<ApiResponse<ReviewListResponse>>(200, "미션 목록 조회 성공")
     public async handleListUserMission(
-        @Path() userId: number,
+        @Request() req: ExpressRequest,
         @Query() cursor: number = 0
     ): Promise<ApiResponse<UserMissionListResponse>>{
+        const userId = (req.user as any).id;
         const missions = await listUserMissions(userId, cursor);
         return success(missions);
     }
+
+    /**
+     * 유저 정보 수정 API
+     * @summary 로그인한 유저 본인의 정보를 수정하는 엔드포인트입니다.
+     */
+    @Patch("me")
+    @Middlewares(isLogin)
+    @Response<ApiResponse<UpdateUserResponse>>(200, "유저 정보 수정 성공")
+    public async handleUpdateUser(
+        @Request() req: ExpressRequest,
+        @Body() body: UpdateUserRequest
+    ): Promise<ApiResponse<UpdateUserResponse>> {
+        const userId = (req.user as any).id;
+        const result = await updateUserService(userId, body);
+        return success(result);
+    }
+
 }
