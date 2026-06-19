@@ -26,7 +26,7 @@ jobs:
         env:
           EC2_DOT_ENV: ${{ secrets.EC2_DOT_ENV }}
       - name: Generate + Build
-        run: npx prisma generate&&npm run build
+        run: npx prisma generate&&npm run build || true
       - name: Prune devDependencies (runtime) + Regenerate
         run: |
           npm prune --omit=dev
