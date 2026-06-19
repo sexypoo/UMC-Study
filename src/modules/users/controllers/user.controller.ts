@@ -1,0 +1,159 @@
+import { 
+    Body,
+    Controller,
+    Get,
+    Middlewares,
+    Post,
+    Request,
+    Response,
+    Route,
+    Tags,
+    Path,
+    Query,
+    Security,
+    Patch,
+} from "tsoa";
+
+
+import { UpdateUserRequest, UpdateUserResponse, UserSignUpRequest, UserSignUpResponse } from "../dtos/user.dto.js";
+import { userSignUp, listUserReviews, listUserMissions, updateUserService } from "../services/user.service.js";
+
+import { ApiResponse, success, FailResponse } from "../../../common/responses/response.js";
+
+import { Request as ExpressRequest, Response as ExpressResponse } from "express"
+import { ReviewListResponse } from "../../reviews/dtos/review.dto.js";
+import { UserMissionListResponse } from "../../missions/dtos/user-mission.dto.js"
+
+import { isLogin } from "../../../common/middlewares/auth.middleware.js";
+
+@Route("users")
+@Tags("Users")
+export class UserController extends Controller{ 
+    /**
+     * 회원가입 API
+     * @summary 회원가입을 처리하는 엔드포인트입니다.
+     * @param body 
+     * @returns { UserSignUpResponse } 회원가입 결과
+     */
+    @Post("signup")
+    @Response<ApiResponse<UserSignUpResponse>>(200, "회원가입 성공")
+    @Response<FailResponse<null>>(409, "중복된 이메일 에러", {
+        resultType: "FAIL",
+        error: {
+            errorCode: "U001",
+            reason: "이미 사용 중인 이메일입니다.",
+            data: null,
+        },
+        data: null,
+    })
+    public async handleUserSignUp(
+        @Body() body: UserSignUpRequest,
+    ) : Promise<ApiResponse<UserSignUpResponse>> {
+        console.log("회원가입을 요청했습니다!");
+        console.log("body:", body);
+        const user = await userSignUp(body);
+        return success(user);
+    }
+
+    /**
+    * 게스트 페이지
+    * @summary 로그인 없이 접근 가능한 게스트 페이지입니다.
+    */
+    @Get("guest")
+    public async handleGuestPage(): Promise<String>{
+        return `
+            <h1>게스트 페이지</h1>
+            <p>이 페이지는 로그인이 필요 없습니다.</p>
+            <ul>
+                <li><a href="/api/v1/users/mypage">마이페이지 (로그인 필요)</a></li>
+            </ul>
+        `;
+    }
+
+    /**
+     * 로그인 페이지
+     * @summary 인증이 필요한 페이지 시 리디렉션되는 로그인 페이지입니다.
+     */
+    @Get("login")
+    public async handleLoginPage(): Promise<String>{
+        return "<h1>로그인 페이지</h1><p> 로그인이 필요한 페이지에서 튕겨나오면 여기로 옵니다.";
+    }
+
+    /**
+     * 마이페이지
+     * @summary 로그인한 유저만 접근 가능한 마이페이지입니다.
+     */
+    @Get("mypage")
+    @Middlewares(isLogin)
+    public async handleMypage(@Request() req: ExpressRequest): Promise<String>{
+        return `
+            <h1>마이페이지</h1>
+            <p>환영합니다, ${req.cookies.username}님!</p>
+            <p>이 페이지는 로그인한 사람만 볼 수 있습니다.</p>
+        `;
+    }
+
+    @Get("set-login")
+    public async handleSetLogin(@Request() req: ExpressRequest): Promise<String>{
+        req.res!.cookie("username","UMC10th",{maxAge:3600000});
+        return '로그인 쿠키(username=UMC10th) 생성 완료! <a href="/api/v1/users/mypage">마이페이지로 이동</a>';
+    }
+
+    @Get("set-logout")
+    public async handleSetLogout(@Request() req: ExpressRequest): Promise<String>{
+        req.res!.clearCookie("username");
+        return '로그아웃 완료 (쿠키 삭제). <a href="/api/v1/users/guest">메인으로</a>'
+    }
+
+    /**
+     * 유저 리뷰 목록 조회 API
+     * @summary 특정 유저가 작성한 리뷰 목록을 반환하는 엔드포인트입니다.
+     * @param cusor
+     */
+    @Get("me/reviews")
+    @Middlewares(isLogin)
+    @Response<ApiResponse<ReviewListResponse>>(200, "리뷰 목록 조회 성공")
+    public async handleListUserReview(
+        @Request() req: ExpressRequest,
+        @Query() cursor: number = 0
+    ): Promise<ApiResponse<ReviewListResponse>>{
+        const userId = (req.user as any).id;
+        const reviews = await listUserReviews(userId, cursor);
+        return success(reviews);
+    }
+
+
+    /**
+     * 유저 미션 목록 조회 API
+     * @summary 특정 유저가 수행중인 미션 목록을 반환하는 엔드포인트입니다.
+     * @param cusor
+     */
+    @Get("me/missions")
+    @Middlewares(isLogin)
+    @Response<ApiResponse<ReviewListResponse>>(200, "미션 목록 조회 성공")
+    public async handleListUserMission(
+        @Request() req: ExpressRequest,
+        @Query() cursor: number = 0
+    ): Promise<ApiResponse<UserMissionListResponse>>{
+        const userId = (req.user as any).id;
+        const missions = await listUserMissions(userId, cursor);
+        return success(missions);
+    }
+
+    /**
+     * 유저 정보 수정 API
+     * @summary 로그인한 유저 본인의 정보를 수정하는 엔드포인트입니다.
+     */
+    @Patch("me")
+    @Middlewares(isLogin)
+    @Response<ApiResponse<UpdateUserResponse>>(200, "유저 정보 수정 성공")
+    public async handleUpdateUser(
+        @Request() req: ExpressRequest,
+        @Body() body: UpdateUserRequest
+    ): Promise<ApiResponse<UpdateUserResponse>> {
+        const userId = (req.user as any).id;
+        const result = await updateUserService(userId, body);
+        return success(result);
+    }
+
+}
